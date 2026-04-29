@@ -1,0 +1,44 @@
+{
+  "expo": {
+    "name": "Gerenciar - Gestão de Dívidas",
+    "slug": "manager-debts",
+    "scheme": "manager-debts",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": false,
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1A1F3A"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.manager.debts"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1A1F3A"
+      },
+      "package": "com.manager.debts"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-secure-store"
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "c0ac256a-f8d1-4431-bc9a-65f4025a1fc3"
+      }
+    }
+  }
+}
