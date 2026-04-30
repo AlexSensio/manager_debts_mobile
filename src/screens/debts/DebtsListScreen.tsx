@@ -63,9 +63,7 @@ export default function DebtsListScreen({ navigation }: Props) {
         onPress={() => navigation.navigate('DebtDetail', { debtId: item._id })}
         activeOpacity={0.7}
       >
-        <View style={styles.cardLeft}>
-          <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
-        </View>
+        <View style={[styles.cardLeft, { backgroundColor: statusColor }]} />
         <View style={styles.cardBody}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardDescription} numberOfLines={1}>{item.description}</Text>
@@ -169,12 +167,7 @@ const styles = StyleSheet.create({
   },
   cardLeft: {
     width: 6,
-    backgroundColor: colors.border,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 2,
   },
-  statusDot: { width: 6, height: '100%' },
   cardBody: { flex: 1, padding: spacing.md },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   cardDescription: {

@@ -69,6 +69,8 @@ export default function DashboardScreen() {
   const totalPending = totals?.totalPending || 0;
   const totalReceived = totals?.totalReceived || 0;
   const totalLent = totals?.totalLent || 0;
+  const totalAccruedInterest = totals?.totalAccruedInterest || 0;
+  const totalUpdated = totals?.totalUpdated || 0;
   const percentReceived = totalLent > 0 ? (totalReceived / (totalLent + (totals?.totalInterest || 0))) * 100 : 0;
 
   const navigateNewDebts = () => {
@@ -121,6 +123,23 @@ export default function DashboardScreen() {
             </Text>
           </View>
         </View>
+
+        {totalAccruedInterest > 0 && (
+          <View style={styles.summaryRow}>
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryItemLabel}>Juros acumulados (atraso)</Text>
+              <Text style={[styles.summaryItemValue, { color: colors.danger }]}>
+                {formatCurrency(totalAccruedInterest)}
+              </Text>
+            </View>
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryItemLabel}>Total atualizado</Text>
+              <Text style={[styles.summaryItemValue, { color: colors.danger }]}>
+                {formatCurrency(totalUpdated)}
+              </Text>
+            </View>
+          </View>
+        )}
 
         {/* Progress bar */}
         <View style={styles.progressContainer}>

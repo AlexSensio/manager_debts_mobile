@@ -64,6 +64,7 @@ export default function DebtDetailScreen({ route }: Props) {
   const person = debt?.personId as any;
   const statusColor = debt ? debtStatusColor(debt.status) : colors.textSecondary;
   const paidCount = installments?.filter((i) => i.status === 'paid').length || 0;
+  const totalAccrued = installments?.reduce((sum, i) => sum + (i.currentLateFees ?? 0), 0) || 0;
 
   return (
     <>
@@ -108,6 +109,26 @@ export default function DebtDetailScreen({ route }: Props) {
                 <Text style={styles.statValue}>{debt.interestRate}%</Text>
               </View>
               <View style={styles.statItem}>
+                <Text style={styles.statLabel}>Juros diários (atraso)</Text>
+                <Text style={styles.statValue}>{debt.dailyInterestRate ?? 0}%/dia</Text>
+              </View>
+            </View>
+
+            <View style={styles.statsRow}>
+              <View style={styles.statItem}>
+                <Text style={styles.statLabel}>Início</Text>
+                <Text style={styles.statValue}>{dayjs(debt.startDate).format('DD/MM/YYYY')}</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statLabel}>Previsão de encerramento</Text>
+                <Text style={styles.statValue}>
+                  {debt.endDate ? dayjs(debt.endDate).format('DD/MM/YYYY') : '—'}
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.statsRow}>
+              <View style={styles.statItem}>
                 <Text style={styles.statLabel}>Parcelas</Text>
                 <Text style={styles.statValue}>{paidCount}/{debt.installmentsCount} pagas</Text>
               </View>
@@ -127,6 +148,16 @@ export default function DebtDetailScreen({ route }: Props) {
                 {formatCurrency((installments?.filter((i) => i.status === 'paid').reduce((s, i) => s + i.amount, 0)) || 0)} recebido
               </Text>
             </View>
+
+            {/* Juros acumulados em aberto */}
+            {totalAccrued > 0 && (
+              <View style={styles.accruedRow}>
+                <Ionicons name="alert-circle-outline" size={16} color={colors.danger} />
+                <Text style={styles.accruedText}>
+                  Juros acumulados em aberto: {formatCurrency(totalAccrued)}
+                </Text>
+              </View>
+            )}
           </View>
         )}
 
@@ -137,6 +168,7 @@ export default function DebtDetailScreen({ route }: Props) {
             {installments?.map((inst) => {
               const isOverdue = inst.status === 'pending' && dayjs(inst.dueDate).isBefore(dayjs(), 'day');
               const color = inst.status === 'paid' ? colors.secondary : isOverdue ? colors.danger : colors.warning;
+              const hasLateFees = (inst.currentLateFees ?? 0) > 0;
               return (
                 <View key={inst._id} style={styles.installmentItem}>
                   <View style={[styles.instIcon, { backgroundColor: `${color}15` }]}>
@@ -150,11 +182,23 @@ export default function DebtDetailScreen({ route }: Props) {
                     <Text style={styles.instNumber}>Parcela {inst.number}</Text>
                     <Text style={[styles.instDate, isOverdue && { color: colors.danger }]}>
                       {inst.status === 'paid'
-                        ? `Pago em ${dayjs(inst.paidAt).format('DD/MM/YYYY')}`
+                        ? `Pago em ${dayjs(inst.paidAt).format('DD/MM/YYYY')}${inst.lateFees && inst.lateFees > 0 ? ` · Juros: ${formatCurrency(inst.lateFees)}` : ''}`
                         : dayjs(inst.dueDate).format('DD/MM/YYYY')}
                     </Text>
+                    {hasLateFees && (
+                      <Text style={styles.lateFeeText}>
+                        +{formatCurrency(inst.currentLateFees!)} juros ({inst.currentLateDays} dias)
+                      </Text>
+                    )}
                   </View>
-                  <Text style={[styles.instAmount, { color }]}>{formatCurrency(inst.amount)}</Text>
+                  <View style={styles.instAmountCol}>
+                    <Text style={[styles.instAmount, { color }]}>{formatCurrency(inst.amount)}</Text>
+                    {hasLateFees && (
+                      <Text style={styles.instAmountUpdated}>
+                        {formatCurrency(inst.amount + (inst.currentLateFees ?? 0))}
+                      </Text>
+                    )}
+                  </View>
                   {inst.status === 'pending' && (
                     <TouchableOpacity
                       style={styles.payBtn}
@@ -202,6 +246,23 @@ export default function DebtDetailScreen({ route }: Props) {
                     {formatCurrency(selectedInstallment.amount)}
                   </Text>
                 </View>
+
+                {(selectedInstallment.currentLateFees ?? 0) > 0 && (
+                  <>
+                    <View style={styles.modalInfo}>
+                      <Text style={styles.modalLabel}>Juros de atraso ({selectedInstallment.currentLateDays} dias)</Text>
+                      <Text style={[styles.modalValue, { color: colors.danger }]}>
+                        +{formatCurrency(selectedInstallment.currentLateFees!)}
+                      </Text>
+                    </View>
+                    <View style={styles.modalInfo}>
+                      <Text style={[styles.modalLabel, { fontWeight: typography.weights.bold }]}>Total a receber</Text>
+                      <Text style={[styles.modalValue, styles.modalAmount]}>
+                        {formatCurrency(selectedInstallment.amount + (selectedInstallment.currentLateFees ?? 0))}
+                      </Text>
+                    </View>
+                  </>
+                )}
 
                 <Text style={styles.modalNote}>Confirmar o recebimento desta parcela?</Text>
 
@@ -289,7 +350,20 @@ const styles = StyleSheet.create({
   instInfo: { flex: 1 },
   instNumber: { fontSize: typography.sizes.md, fontWeight: typography.weights.semibold, color: colors.textPrimary },
   instDate: { fontSize: typography.sizes.xs, color: colors.textSecondary },
+  lateFeeText: { fontSize: typography.sizes.xs, color: colors.danger, marginTop: 2 },
+  instAmountCol: { alignItems: 'flex-end' },
   instAmount: { fontSize: typography.sizes.md, fontWeight: typography.weights.bold },
+  instAmountUpdated: { fontSize: typography.sizes.xs, color: colors.danger, marginTop: 2 },
+  accruedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.md,
+    backgroundColor: `${colors.danger}15`,
+    borderRadius: borderRadius.sm,
+    padding: spacing.sm,
+  },
+  accruedText: { fontSize: typography.sizes.sm, color: colors.danger, fontWeight: typography.weights.semibold },
   payBtn: {
     backgroundColor: colors.secondary,
     paddingHorizontal: spacing.sm,

@@ -38,10 +38,12 @@ export interface Debt {
   totalAmount: number;
   installmentsCount: number;
   interestRate: number;
+  dailyInterestRate: number;
   installmentAmount: number;
   totalWithInterest: number;
   status: DebtStatus;
   startDate: string;
+  endDate?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -54,6 +56,10 @@ export interface Installment {
   amount: number;
   status: InstallmentStatus;
   paidAt?: string;
+  lateFees?: number;
+  lateDays?: number;
+  currentLateFees?: number; // calculado em tempo real pelo backend
+  currentLateDays?: number; // calculado em tempo real pelo backend
   createdAt: string;
   updatedAt: string;
 }
@@ -68,6 +74,8 @@ export interface GlobalDashboard {
     totalReceived: number;
     totalInterest: number;
     totalPending: number;
+    totalAccruedInterest: number;
+    totalUpdated: number;
     totalPeople: number;
     totalDebts: number;
   };
@@ -131,7 +139,9 @@ export interface DebtForm {
   totalAmount: number;
   installmentsCount: number;
   interestRate: number;
+  dailyInterestRate?: number;
   startDate?: string;
+  endDate?: string;
 }
 
 // ============================================================
